@@ -78,9 +78,32 @@ public class CustomLinkedList {
     }
 
     /**
+     * containsUsingIterator
+     * Checks whether a value already exists in the list by walking it
+     * with the class's own iterator rather than touching Node directly.
+     * This demonstrates the linked list and iterator working together,
+     * instead of writing a second, separate traversal loop by hand.
+     * @param data the integer value to search for
+     * @return true if the value is found, false otherwise
+     */
+    public boolean containsUsingIterator(int data) {
+        Iterator<Integer> it = iterator();
+        // walk the list through the public iterator contract only
+        while (it.hasNext()) {
+            int value = it.next();
+            if (value == data) {
+                return true;  // match found, no need to keep scanning
+            }
+        }
+        return false;  // reached the end without finding a match
+    }
+
+    /**
      * loadFromFile
      * Reads whitespace or newline separated integers from a text file
      * and inserts each one into the list in the order they appear.
+     * Values already present in the list are skipped using
+     * containsUsingIterator so the file cannot introduce duplicates.
      * @param filePath path to the text file containing integer data
      */
     public void loadFromFile(String filePath) {
@@ -95,8 +118,18 @@ public class CustomLinkedList {
                 String[] tokens = line.split("\\s+");
                 // a line can hold one value or several separated by spaces
                 for (String token : tokens) {
-                    insert(Integer.parseInt(token));
-                    // convert token to int and insert it into the list
+                    int value = Integer.parseInt(token);
+                    // ---------------------------------------------------
+                    // VALIDATION: skip the value if it is already in the
+                    // list instead of inserting a duplicate node. Uses
+                    // containsUsingIterator so the check goes through the
+                    // iterator rather than Node fields directly.
+                    // ---------------------------------------------------
+                    if (containsUsingIterator(value)) {
+                        System.out.println("Skipped duplicate value from file: " + value);
+                        continue;
+                    }
+                    insert(value);
                 }
             }
         } catch (IOException e) {
@@ -153,7 +186,8 @@ public class CustomLinkedList {
 /**
  * Main
  * Demonstrates CustomLinkedList functionality: insertion, deletion,
- * iterator-based traversal, and loading integer data from a text file.
+ * iterator-based traversal, and loading integer data from a text file
+ * with duplicate skipping via containsUsingIterator.
  */
 class Main {
     public static void main(String[] args) {
@@ -200,14 +234,23 @@ class Main {
         System.out.println();
 
         // ---------------------------------------------------------
-        // STEP 4: Load integers from a text file and traverse
+        // STEP 4: Load integers from a text file into the existing
+        // list, demonstrating containsUsingIterator() skipping
+        // duplicates already present in the list (1 and 3)
         // ---------------------------------------------------------
-        CustomLinkedList fileList = new CustomLinkedList();
-        fileList.loadFromFile("data.txt");
-        // data.txt must sit in the working directory, one or more ints per line
+        System.out.print("List before loading file: ");
+        iterator = linkedList.iterator();
+        while (iterator.hasNext()) {
+            System.out.print(iterator.next() + " ");
+        }
+        System.out.println();
 
-        System.out.print("Elements loaded from data.txt: ");
-        iterator = fileList.iterator();
+        linkedList.loadFromFile("Data.txt");
+        // Data.txt mixes new values with 1 and 3, which are already
+        // in the list, to show the duplicate check taking effect
+
+        System.out.print("List after loading Data.txt: ");
+        iterator = linkedList.iterator();
         while (iterator.hasNext()) {
             System.out.print(iterator.next() + " ");
         }
